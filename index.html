@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Big Boss Command Center · Tech House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E9EF; --panel:#F6F8FA; --panel2:#ECF0F4; --line:#C9D2DC; --text:#17222D; --muted:#5C6C7D;
+  --accent:#5B3FE0; --accent-ink:#fff; --danger:#D7263D; --immune:#0C8F80; --captain:#B77900; --ok:#1E8E4E;
+  --shadow:0 1px 0 rgba(23,34,45,.04);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#131D27; --panel:#1B2937; --panel2:#223344; --line:#304559; --text:#E7EEF4; --muted:#93A6B8;
+    --accent:#9483FF; --accent-ink:#14102E; --danger:#FF5C70; --immune:#37D3C0; --captain:#F2B33D; --ok:#4CCB84;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131D27; --panel:#1B2937; --panel2:#223344; --line:#304559; --text:#E7EEF4; --muted:#93A6B8;
+  --accent:#9483FF; --accent-ink:#14102E; --danger:#FF5C70; --immune:#37D3C0; --captain:#F2B33D; --ok:#4CCB84;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:15px/1.45 "IBM Plex Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;margin:0;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.eye{width:40px;height:40px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none}
+.eye i{width:16px;height:16px;border-radius:50%;background:var(--accent-ink);display:block;position:relative}
+.eye i::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--accent)}
+.brand h1{font-size:24px;font-weight:800;line-height:1.05}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.onair{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.onair b{width:10px;height:10px;border-radius:50%;background:var(--danger);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.clock{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:20px}
+
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:500;min-height:38px;transition:background .12s,border-color .12s}
+.btn:hover{background:var(--panel2);border-color:var(--muted)}
+.btn.sm{padding:5px 9px;min-height:32px;font-size:13px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08);background:var(--accent)}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.danger:hover{background:var(--danger);color:#fff}
+.btn.solid-danger{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:600}
+.btn[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.blocked{opacity:.45;cursor:not-allowed}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* announcement strip */
+.strip{display:flex;gap:12px;align-items:center;padding:10px 20px;background:var(--accent);color:var(--accent-ink);font-weight:500}
+.strip strong{font-family:"Bricolage Grotesque",sans-serif;white-space:nowrap}
+.strip span{overflow-wrap:anywhere}
+
+main{padding:20px;max-width:1500px;margin:0 auto}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden;margin-bottom:20px}
+.stat{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0}
+.stat .k{color:var(--muted);font-size:13px}
+.stat .v{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:24px;line-height:1.15;margin-top:2px;overflow-wrap:anywhere}
+.stat .s{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.bar{height:6px;border-radius:3px;background:var(--panel2);margin-top:8px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok);transition:width .3s}
+
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:1180px){.layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.col-a{grid-column:1/-1}}
+@media (max-width:760px){.layout{grid-template-columns:minmax(0,1fr)}main{padding:12px}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+section.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px 10px}
+.ph h2{font-size:19px;font-weight:700;margin-right:auto}
+.ph .hint{color:var(--muted);font-size:13px}
+.pb{padding:0 16px 16px}
+.empty{color:var(--muted);padding:10px 0}
+
+label.f{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted);min-width:0}
+input,select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:38px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:70px}
+.formrow{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.formrow>label{flex:1 1 130px}
+
+/* contestants */
+.step{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.step input{width:64px;min-height:32px;padding:4px 8px}
+ul.list{list-style:none;margin:0;padding:0}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.av{width:40px;height:40px;border-radius:10px;color:#fff;font-weight:700;display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;flex:none}
+.who{min-width:0}
+.who b{font-size:16px;font-weight:600}
+.who small{color:var(--muted);display:block}
+.pts{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;text-align:right}
+.acts{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid currentColor}
+.chip.cap{color:var(--captain)}.chip.imm{color:var(--immune)}.chip.nom{color:var(--danger)}.chip.safe{color:var(--muted);font-weight:500}.chip.ev{color:var(--muted)}
+.pm{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.pm button{border:0;background:var(--panel);min-width:44px;min-height:32px;cursor:pointer;font-weight:700;font-size:15px}
+.pm button:hover{background:var(--panel2)}
+.pm button+button{border-left:1px solid var(--line)}
+.pm .minus{color:var(--danger)}.pm .plus{color:var(--ok)}
+
+/* leaderboard */
+.lb{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.lb:first-child{border-top:0}
+.rk{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:20px;text-align:center}
+.lb.r1 .rk{color:var(--captain)}
+.lb .nm{font-weight:600;overflow-wrap:anywhere}
+.lb .nm small{font-weight:400;color:var(--muted);margin-left:6px}
+.lb .sc{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:18px}
+.lb .meter{grid-column:2/4;height:6px;background:var(--panel2);border-radius:3px;overflow:hidden}
+.lb .meter i{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+.mv{font-size:12px;font-weight:700;margin-left:4px}.mv.up{color:var(--ok)}.mv.dn{color:var(--danger)}
+.lb.flash{animation:flash 1.2s}
+@keyframes flash{from{background:color-mix(in srgb,var(--accent) 25%,transparent)}to{background:transparent}}
+
+/* danger zone */
+.danger-zone{border:2px solid var(--danger);position:relative;overflow:hidden}
+.danger-zone::before{content:"";display:block;height:12px;background:repeating-linear-gradient(-45deg,var(--danger) 0 12px,transparent 12px 24px)}
+.danger-zone .ph h2{color:var(--danger)}
+.nominee{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px;border:1px solid var(--danger);border-radius:10px;margin-top:8px;background:color-mix(in srgb,var(--danger) 8%,var(--panel))}
+.nominee .who{flex:1 1 140px}
+.nominee .acts{grid-column:auto;flex:none}
+
+/* timer */
+.timer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9}
+.ring .bg{stroke:var(--panel2)}.ring .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .25s linear,stroke .2s}
+.ring.low .fg{stroke:var(--danger)}
+.ring .t{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .t b{font-family:"Bricolage Grotesque",sans-serif;font-size:34px;font-weight:800;line-height:1}
+.ring .t span{font-size:12px;color:var(--muted)}
+.ring.done .t b{color:var(--danger);animation:pulse 1s infinite}
+.tctl{flex:1 1 180px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+
+/* tasks */
+.task{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.task:first-child{border-top:0}
+.task b{overflow-wrap:anywhere}
+.task.done b{text-decoration:line-through;color:var(--muted)}
+.task small{color:var(--muted)}
+.task .acts{grid-column:1/-1}
+.tag{font-size:12px;font-weight:600;color:var(--ok)}
+
+.log{max-height:240px;overflow:auto;font-size:13px}
+.log li{padding:5px 0;border-top:1px solid var(--line);color:var(--muted)}
+.log li:first-child{border-top:0}
+.log time{color:var(--text);font-weight:500;margin-right:6px}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.hist li{padding:8px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
+.hist li:first-child{border-top:0}
+.hist time{display:block;color:var(--muted);font-size:12px}
+
+/* overlay + modal */
+.overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px;background:color-mix(in srgb,var(--accent) 88%,#000);color:var(--accent-ink);text-align:center}
+.overlay[hidden],.modal[hidden]{display:none}
+.overlay .in{max-width:860px}
+.overlay h2{font-size:clamp(20px,3vw,30px);font-weight:700;opacity:.85;margin-bottom:14px}
+.overlay p{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(28px,6vw,64px);line-height:1.1;margin:0 0 24px;overflow-wrap:anywhere}
+.overlay .btn{background:var(--accent-ink);color:var(--accent);border-color:var(--accent-ink);font-weight:600}
+.overlay.enter .in{animation:pop .4s ease-out}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(10,15,20,.6);padding:16px}
+.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:420px;width:100%}
+.modal h3{font-size:20px;margin-bottom:6px}
+.modal p{margin:0 0 16px;color:var(--muted)}
+.modal .btnrow{justify-content:flex-end}
+
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:70;width:min(92vw,420px)}
+.toast{background:var(--text);color:var(--bg);padding:10px 14px;border-radius:10px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.toast.err{background:var(--danger);color:#fff}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="eye" aria-hidden="true"><i></i></div>
+    <div><h1>Big Boss Command Center</h1><p>Tech House control room</p></div>
+  </div>
+  <div class="onair"><b></b>Live</div>
+  <div class="clock num" id="clock" aria-label="Current time"></div>
+  <button class="btn sm" id="themeBtn" type="button">Switch theme</button>
+  <button class="btn sm danger" id="resetBtn" type="button">Reset house</button>
+</header>
+
+<div class="strip" id="strip" role="status" aria-live="polite"></div>
+
+<main>
+  <section class="stats" id="stats" aria-label="House statistics"></section>
+
+  <div class="layout">
+    <!-- Column A: contestants -->
+    <div class="col col-a">
+      <section class="panel" aria-labelledby="h-cont">
+        <div class="ph">
+          <h2 id="h-cont">Contestants in the house</h2>
+          <label class="step" for="step">Points per tap <input id="step" type="number" min="1" value="10"></label>
+        </div>
+        <div class="pb">
+          <div class="formrow" style="margin-bottom:6px">
+            <label class="f">Name<input id="newName" maxlength="24" placeholder="New contestant"></label>
+            <label class="f">Team<input id="newTeam" list="teams" maxlength="24" placeholder="Pick or type a team"></label>
+            <datalist id="teams"></datalist>
+            <button class="btn primary" id="addC" type="button">Add contestant</button>
+          </div>
+          <ul class="list" id="contestants"></ul>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="h-ev">
+        <div class="ph"><h2 id="h-ev">Evicted</h2><span class="hint">Out of the house and off the leaderboard</span></div>
+        <div class="pb"><ul class="list" id="evicted"></ul></div>
+      </section>
+    </div>
+
+    <!-- Column B: leaderboard + danger zone -->
+    <div class="col">
+      <section class="panel" aria-labelledby="h-lb">
+        <div class="ph"><h2 id="h-lb">Live leaderboard</h2><span class="hint">Active contestants only</span></div>
+        <div class="pb" id="leaderboard"></div>
+      </section>
+      <section class="panel danger-zone" aria-labelledby="h-dz">
+        <div class="ph"><h2 id="h-dz">Danger zone</h2><button class="btn sm" id="clearNoms" type="button">Clear nominations</button></div>
+        <div class="pb" id="danger"></div>
+      </section>
+    </div>
+
+    <!-- Column C: timer, tasks, announcements, log -->
+    <div class="col">
+      <section class="panel" aria-labelledby="h-timer">
+        <div class="ph"><h2 id="h-timer">Task timer</h2><span class="hint" id="tStatus">Ready</span></div>
+        <div class="pb">
+          <div class="timer">
+            <div class="ring" id="ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="54"/><circle class="fg" id="ringFg" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="0"/></svg>
+              <div class="t"><b class="num" id="tTime" role="timer" aria-live="off">05:00</b><span id="tTask">No task linked</span></div>
+            </div>
+            <div class="tctl">
+              <div class="btnrow">
+                <button class="btn primary" id="tStart" type="button">Start</button>
+                <button class="btn" id="tPause" type="button">Pause</button>
+                <button class="btn" id="tReset" type="button">Reset</button>
+              </div>
+              <div class="btnrow" id="presets">
+                <button class="btn sm" data-min="1" type="button">1 min</button>
+                <button class="btn sm" data-min="5" type="button">5 min</button>
+                <button class="btn sm" data-min="10" type="button">10 min</button>
+                <button class="btn sm" data-min="15" type="button">15 min</button>
+              </div>
+              <div class="formrow">
+                <label class="f">Custom minutes<input id="tCustom" type="number" min="0.1" step="0.5" placeholder="e.g. 7"></label>
+                <button class="btn sm" id="tSet" type="button">Set</button>
+              </div>
+              <label class="f">Timing task<select id="tTaskSel"></select></label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-task">
+        <div class="ph"><h2 id="h-task">Tasks</h2><span class="hint" id="taskCount"></span></div>
+        <div class="pb">
+          <div class="formrow" style="margin-bottom:8px">
+            <label class="f" style="flex-basis:100%">Task<input id="taskTitle" maxlength="80" placeholder="What must they do?"></label>
+            <label class="f">Assign to<select id="taskWho"></select></label>
+            <label class="f" style="flex:0 1 90px">Reward<input id="taskPts" type="number" min="0" value="25"></label>
+            <button class="btn primary" id="addTask" type="button">Assign task</button>
+          </div>
+          <ul class="list" id="tasks"></ul>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-ann">
+        <div class="ph"><h2 id="h-ann">Big Boss announcement</h2></div>
+        <div class="pb">
+          <label class="f">Message to the house<textarea id="annText" maxlength="200" placeholder="Attention, housemates…"></textarea></label>
+          <div class="quick" id="quick"></div>
+          <button class="btn primary" id="annBtn" type="button">Broadcast to the house</button>
+          <ul class="list hist" id="annHist" style="margin-top:10px"></ul>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-log">
+        <div class="ph"><h2 id="h-log">Activity log</h2></div>
+        <div class="pb"><ul class="list log" id="log"></ul></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="overlay" id="overlay" role="alertdialog" aria-live="assertive" aria-labelledby="ovHead" hidden>
+  <div class="in">
+    <h2 id="ovHead">Big Boss announcement</h2>
+    <p id="ovText"></p>
+    <button class="btn" id="ovClose" type="button">Dismiss</button>
+  </div>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+  <div class="box">
+    <h3 id="mTitle"></h3>
+    <p id="mBody"></p>
+    <div class="btnrow"><button class="btn" id="mCancel" type="button">Cancel</button><button class="btn solid-danger" id="mOk" type="button">Confirm</button></div>
+  </div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+var KEY="bb-house-v1", RING=339.292;
+var $=function(id){return document.getElementById(id)};
+var uid=function(){return Math.random().toString(36).slice(2,9)};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var now=function(){return Date.now()};
+var hhmm=function(t){return new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})};
+
+function seed(){
+  var mk=function(n,t,p){return {id:uid(),name:n,team:t,points:p,status:"active",immune:false,nominated:false}};
+  var c=[mk("Aarav","Frontend Foxes",120),mk("Meera","Backend Bears",95),mk("Rohan","Cloud Cobras",140),mk("Ishita","Data Dolphins",80),
+         mk("Kabir","Backend Bears",60),mk("Ananya","Frontend Foxes",110),mk("Vihaan","Cloud Cobras",45),mk("Diya","Data Dolphins",130),
+         mk("Arjun","Frontend Foxes",70),mk("Saanvi","Backend Bears",85)];
+  return {
+    contestants:c, captainId:c[2].id,
+    tasks:[
+      {id:uid(),title:"Fix the broken CI pipeline",assigneeId:c[2].id,points:30,done:false,awarded:0},
+      {id:uid(),title:"Design the house wall dashboard",assigneeId:c[0].id,points:25,done:false,awarded:0},
+      {id:uid(),title:"Migrate the diary-room database",assigneeId:"all",points:15,done:false,awarded:0},
+      {id:uid(),title:"Write the morning stand-up script",assigneeId:c[7].id,points:20,done:true,awarded:20}
+    ],
+    announcements:[{id:uid(),text:"Welcome to the Tech House. Big Boss is watching.",time:now()}],
+    log:[{time:now(),text:"Command Center online. 10 contestants in the house."}],
+    timer:{duration:300000,remaining:300000,running:false,endAt:0,taskId:""}
+  };
+}
+function load(){
+  try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.contestants&&p.timer)return p}}catch(e){}
+  return seed();
+}
+var S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+if(S.timer.running){var rem=S.timer.endAt-now();if(rem<=0){S.timer.running=false;S.timer.remaining=0}else S.timer.remaining=rem}
+
+var byId=function(id){return S.contestants.filter(function(c){return c.id===id})[0]};
+var active=function(){return S.contestants.filter(function(c){return c.status==="active"})};
+var hue=function(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return h};
+var avatar=function(c){return '<div class="av" style="background:hsl('+hue(c.team)+' 55% 40%)" aria-hidden="true">'+esc(c.name.slice(0,2).toUpperCase())+'</div>'};
+function log(t){S.log.unshift({time:now(),text:t});S.log=S.log.slice(0,60)}
+
+/* toast + modal */
+function toast(msg,err){
+  var d=document.createElement("div");d.className="toast"+(err?" err":"");d.textContent=msg;$("toasts").appendChild(d);
+  setTimeout(function(){d.remove()},3200);
+}
+var modalCb=null;
+function confirmBox(title,body,okLabel,cb){
+  $("mTitle").textContent=title;$("mBody").textContent=body;$("mOk").textContent=okLabel;modalCb=cb;$("modal").hidden=false;$("mCancel").focus();
+}
+function closeModal(){$("modal").hidden=true;modalCb=null}
+$("mCancel").onclick=closeModal;
+$("mOk").onclick=function(){var cb=modalCb;closeModal();if(cb)cb()};
+
+/* announcements */
+var ovTimer=null;
+function announce(text,silentToast){
+  S.announcements.unshift({id:uid(),text:text,time:now()});S.announcements=S.announcements.slice(0,25);
+  log("Announcement: "+text);
+  $("ovText").textContent=text;$("overlay").hidden=false;$("overlay").classList.remove("enter");void $("overlay").offsetWidth;$("overlay").classList.add("enter");
+  $("ovClose").focus();clearTimeout(ovTimer);ovTimer=setTimeout(function(){$("overlay").hidden=true},12000);
+  commit();
+}
+$("ovClose").onclick=function(){$("overlay").hidden=true;clearTimeout(ovTimer)};
+$("annBtn").onclick=function(){
+  var t=$("annText").value.trim();
+  if(!t){toast("Type a message before broadcasting.",true);return}
+  announce(t);$("annText").value="";
+};
+var QUICK=["Attention housemates, gather in the living area.","Nominations are now open.","Immunity challenge starts in 5 minutes.","Tonight someone leaves the Tech House."];
+$("quick").innerHTML=QUICK.map(function(q,i){return '<button class="btn sm" type="button" data-q="'+i+'">'+esc(q)+'</button>'}).join("");
+$("quick").onclick=function(e){var b=e.target.closest("[data-q]");if(b){$("annText").value=QUICK[+b.dataset.q];$("annText").focus()}};
+
+/* state mutations */
+function adj(id,sign){
+  var c=byId(id);if(!c||c.status!=="active")return;
+  var step=Math.max(1,Math.floor(+$("step").value)||10);
+  c.points+=sign*step;
+  log((sign>0?"+":"−")+step+" points for "+c.name+" (now "+c.points+")");
+  commit();
+}
+function setCaptain(id){
+  var c=byId(id);if(!c)return;
+  if(S.captainId===id){S.captainId=null;log(c.name+" stepped down as House Captain.")}
+  else{S.captainId=id;log(c.name+" is the new House Captain.");toast(c.name+" is now House Captain.")}
+  commit();
+}
+function toggleImmune(id){
+  var c=byId(id);if(!c)return;
+  if(c.immune){c.immune=false;log(c.name+" lost immunity.")}
+  else{
+    c.immune=true;log(c.name+" was granted immunity.");
+    if(c.nominated){c.nominated=false;log(c.name+" removed from nominations (immunity).");toast(c.name+" is immune, so the nomination was removed.")}
+    else toast(c.name+" now has immunity.");
+  }
+  commit();
+}
+function toggleNominate(id){
+  var c=byId(id);if(!c||c.status!=="active")return;
+  if(c.nominated){c.nominated=false;log(c.name+" withdrawn from nominations.")}
+  else{
+    if(c.immune){toast(c.name+" has immunity and cannot be nominated.",true);return}
+    c.nominated=true;log(c.name+" was nominated.");toast(c.name+" is in the Danger Zone.");
+  }
+  commit();
+}
+function askEvict(id){
+  var c=byId(id);if(!c)return;
+  confirmBox("Evict "+c.name+"?","They will leave the house and drop off the leaderboard.","Evict "+c.name,function(){
+    c.status="evicted";c.nominated=false;c.immune=false;
+    if(S.captainId===id)S.captainId=null;
+    log(c.name+" was evicted from the Tech House.");
+    announce(c.name+" has been evicted from the Tech House.");
+  });
+}
+function restore(id){var c=byId(id);if(!c)return;c.status="active";log(c.name+" re-entered the house.");commit()}
+$("addC").onclick=function(){
+  var n=$("newName").value.trim(),t=$("newTeam").value.trim();
+  if(!n){toast("Enter a name for the contestant.",true);return}
+  if(!t){toast("Enter a team for "+n+".",true);return}
+  if(S.contestants.some(function(c){return c.name.toLowerCase()===n.toLowerCase()})){toast(n+" is already in the house.",true);return}
+  S.contestants.push({id:uid(),name:n,team:t,points:0,status:"active",immune:false,nominated:false});
+  log(n+" joined "+t+".");$("newName").value="";$("newTeam").value="";commit();
+};
+$("newName").addEventListener("keydown",function(e){if(e.key==="Enter")$("addC").click()});
+$("clearNoms").onclick=function(){
+  var n=S.contestants.filter(function(c){return c.nominated}).length;
+  if(!n){toast("No nominations to clear.");return}
+  S.contestants.forEach(function(c){c.nominated=false});log("All nominations cleared.");commit();
+};
+
+/* tasks */
+$("addTask").onclick=function(){
+  var t=$("taskTitle").value.trim(),who=$("taskWho").value,p=Math.max(0,Math.floor(+$("taskPts").value)||0);
+  if(!t){toast("Describe the task first.",true);return}
+  S.tasks.unshift({id:uid(),title:t,assigneeId:who,points:p,done:false,awarded:0});
+  var w=who==="all"?"the whole house":(byId(who)||{}).name;
+  log("Task assigned to "+w+": "+t);$("taskTitle").value="";commit();
+  toast("Task assigned to "+w+".");
+};
+$("taskTitle").addEventListener("keydown",function(e){if(e.key==="Enter")$("addTask").click()});
+function completeTask(id){
+  var t=S.tasks.filter(function(x){return x.id===id})[0];if(!t||t.done)return;
+  t.done=true;t.awarded=0;
+  if(t.assigneeId==="all"){active().forEach(function(c){c.points+=t.points});t.awarded=t.points;log("House completed \""+t.title+"\": +"+t.points+" each.")}
+  else{var c=byId(t.assigneeId);if(c&&c.status==="active"){c.points+=t.points;t.awarded=t.points;log(c.name+" completed \""+t.title+"\": +"+t.points+".")}else log("\""+t.title+"\" marked complete.")}
+  if(S.timer.taskId===id&&S.timer.running)pauseTimer();
+  commit();toast("Task marked complete.");
+}
+function reopenTask(id){
+  var t=S.tasks.filter(function(x){return x.id===id})[0];if(!t||!t.done)return;
+  if(t.awarded){
+    if(t.assigneeId==="all")active().forEach(function(c){c.points-=t.awarded});
+    else{var c=byId(t.assigneeId);if(c&&c.status==="active")c.points-=t.awarded}
+  }
+  t.done=false;t.awarded=0;log("Task reopened: "+t.title);commit();
+}
+function deleteTask(id){S.tasks=S.tasks.filter(function(x){return x.id!==id});if(S.timer.taskId===id)S.timer.taskId="";commit()}
+
+/* timer */
+function drawTimer(){
+  var T=S.timer,ms=Math.max(0,T.remaining),s=Math.ceil(ms/1000),m=Math.floor(s/60);
+  $("tTime").textContent=String(m).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+  var frac=T.duration>0?ms/T.duration:0;
+  $("ringFg").style.strokeDashoffset=String(RING*(1-frac));
+  var ring=$("ring");ring.classList.toggle("low",ms>0&&ms<=10000);ring.classList.toggle("done",ms===0);
+  $("tStatus").textContent=ms===0?"Time's up":T.running?"Running":(ms<T.duration?"Paused":"Ready");
+  $("tStart").disabled=T.running;$("tPause").disabled=!T.running;
+  var task=S.tasks.filter(function(x){return x.id===T.taskId})[0];
+  $("tTask").textContent=task?task.title:"No task linked";
+  [].forEach.call($("presets").children,function(b){b.setAttribute("aria-pressed",String(+b.dataset.min*60000===T.duration))});
+}
+function startTimer(){
+  var T=S.timer;if(T.running)return;
+  if(T.remaining<=0)T.remaining=T.duration;
+  T.endAt=now()+T.remaining;T.running=true;
+  var task=S.tasks.filter(function(x){return x.id===T.taskId})[0];
+  log("Timer started: "+Math.ceil(T.remaining/1000)+"s"+(task?" for \""+task.title+"\"":""));
+  save();drawTimer();renderLog();
+}
+function pauseTimer(){
+  var T=S.timer;if(!T.running)return;
+  T.remaining=Math.max(0,T.endAt-now());T.running=false;log("Timer paused.");save();drawTimer();renderLog();
+}
+function resetTimer(){
+  var T=S.timer;T.running=false;T.remaining=T.duration;log("Timer reset.");save();drawTimer();renderLog();
+}
+function setDuration(min){
+  if(!(min>0)){toast("Enter a duration above zero.",true);return}
+  S.timer.duration=Math.round(min*60000);S.timer.running=false;S.timer.remaining=S.timer.duration;
+  log("Timer set to "+(Math.round(min*10)/10)+" min.");save();drawTimer();renderLog();
+}
+function beep(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.12;o.start();o.stop(a.currentTime+.5)}catch(e){}}
+function timerDone(){
+  var task=S.tasks.filter(function(x){return x.id===S.timer.taskId})[0];
+  beep();announce("Time is up"+(task?" for: "+task.title:"")+".");
+}
+setInterval(function(){
+  var T=S.timer;
+  if(T.running){
+    var rem=T.endAt-now();
+    if(rem<=0){T.remaining=0;T.running=false;save();drawTimer();timerDone()}
+    else{T.remaining=rem;drawTimer()}
+  }
+  $("clock").textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+},250);
+$("tStart").onclick=startTimer;$("tPause").onclick=pauseTimer;$("tReset").onclick=resetTimer;
+$("presets").onclick=function(e){var b=e.target.closest("[data-min]");if(b)setDuration(+b.dataset.min)};
+$("tSet").onclick=function(){setDuration(parseFloat($("tCustom").value));$("tCustom").value=""};
+$("tTaskSel").onchange=function(){S.timer.taskId=this.value;save();drawTimer()};
+
+/* rendering */
+var prevRank={};
+function ranked(){
+  var a=active().slice().sort(function(x,y){return y.points-x.points||x.name.localeCompare(y.name)});
+  var out=[];a.forEach(function(c,i){var r=i>0&&a[i-1].points===c.points?out[i-1].rank:i+1;out.push({c:c,rank:r})});return out;
+}
+function renderStats(){
+  var a=active(),ev=S.contestants.length-a.length,r=ranked(),total=a.reduce(function(s,c){return s+c.points},0);
+  var top=r[0],low=r[r.length-1],noms=a.filter(function(c){return c.nominated}),imm=a.filter(function(c){return c.immune});
+  var done=S.tasks.filter(function(t){return t.done}).length,tt=S.tasks.length,cap=byId(S.captainId);
+  var teams={};a.forEach(function(c){teams[c.team]=(teams[c.team]||0)+c.points});
+  var tk=Object.keys(teams).sort(function(x,y){return teams[y]-teams[x]})[0];
+  var items=[
+    ["Highest scorer",top?top.c.name:"None",top?top.c.points+" points":""],
+    ["Lowest scorer",low?low.c.name:"None",low?low.c.points+" points":""],
+    ["House Captain",cap?cap.name:"Vacant",cap?cap.team:"Assign one below"],
+    ["Active contestants",String(a.length),ev+" evicted"],
+    ["Nominees",String(noms.length),noms.map(function(c){return c.name}).join(", ")||"Nobody nominated"],
+    ["Immune",String(imm.length),imm.map(function(c){return c.name}).join(", ")||"Nobody immune"],
+    ["Tasks completed",done+" of "+tt,tt?'<div class="bar"><i style="width:'+Math.round(done/tt*100)+'%"></i></div>':"No tasks yet"],
+    ["Total points",String(total),a.length?"Average "+(Math.round(total/a.length*10)/10):""],
+    ["Leading team",tk||"None",tk?teams[tk]+" points combined":""]
+  ];
+  $("stats").innerHTML=items.map(function(i){return '<div class="stat"><div class="k">'+i[0]+'</div><div class="v num">'+esc(i[1])+'</div><div class="s">'+(i[0]==="Tasks completed"?i[2]:esc(i[2]))+'</div></div>'}).join("");
+}
+function renderContestants(){
+  var list=active().slice().sort(function(a,b){return a.name.localeCompare(b.name)});
+  $("contestants").innerHTML=list.length?list.map(function(c){
+    var cap=S.captainId===c.id,chips=[];
+    if(cap)chips.push('<span class="chip cap">Captain</span>');
+    if(c.immune)chips.push('<span class="chip imm">Immune</span>');
+    if(c.nominated)chips.push('<span class="chip nom">Nominated</span>');
+    if(!chips.length)chips.push('<span class="chip safe">Safe</span>');
+    var blocked=c.immune&&!c.nominated;
+    return '<li class="row" data-id="'+c.id+'">'+avatar(c)+
+      '<div class="who"><b>'+esc(c.name)+'</b><small>'+esc(c.team)+'</small><div class="chips">'+chips.join("")+'</div></div>'+
+      '<div class="pts num" aria-label="'+c.points+' points">'+c.points+'</div>'+
+      '<div class="acts">'+
+        '<span class="pm" role="group" aria-label="Points for '+esc(c.name)+'"><button class="minus" data-act="minus" data-id="'+c.id+'" type="button" aria-label="Deduct points from '+esc(c.name)+'">−</button><button class="plus" data-act="plus" data-id="'+c.id+'" type="button" aria-label="Add points to '+esc(c.name)+'">+</button></span>'+
+        '<button class="btn sm" data-act="cap" data-id="'+c.id+'" type="button" aria-pressed="'+cap+'">'+(cap?"Remove captain":"Make captain")+'</button>'+
+        '<button class="btn sm" data-act="imm" data-id="'+c.id+'" type="button" aria-pressed="'+c.immune+'">'+(c.immune?"Revoke immunity":"Grant immunity")+'</button>'+
+        '<button class="btn sm'+(blocked?" blocked":"")+'" data-act="nom" data-id="'+c.id+'" type="button" aria-pressed="'+c.nominated+'"'+(blocked?' aria-disabled="true" title="Immune contestants cannot be nominated"':"")+'>'+(c.nominated?"Withdraw nomination":"Nominate")+'</button>'+
+        '<button class="btn sm danger" data-act="evict" data-id="'+c.id+'" type="button">Evict</button>'+
+      '</div></li>';
+  }).join(""):'<li class="empty">Nobody is in the house. Add a contestant above.</li>';
+  var teams=[];S.contestants.forEach(function(c){if(teams.indexOf(c.team)<0)teams.push(c.team)});
+  $("teams").innerHTML=teams.map(function(t){return '<option value="'+esc(t)+'">'}).join("");
+}
+function renderBoard(){
+  var r=ranked(),max=Math.max(1,Math.max.apply(null,r.map(function(x){return Math.abs(x.c.points)}).concat([1])));
+  var next={};
+  $("leaderboard").innerHTML=r.length?r.map(function(x){
+    next[x.c.id]=x.rank;var p=prevRank[x.c.id],mv="",cls="";
+    if(p!==undefined&&p!==x.rank){var up=x.rank<p;mv='<span class="mv '+(up?"up":"dn")+'">'+(up?"▲":"▼")+Math.abs(p-x.rank)+'</span>';cls=" flash"}
+    var w=Math.max(0,Math.round(x.c.points/max*100));
+    return '<div class="lb r'+x.rank+cls+'"><div class="rk num">'+x.rank+'</div><div class="nm">'+esc(x.c.name)+(S.captainId===x.c.id?" 👑":"")+mv+'<small>'+esc(x.c.team)+'</small></div><div class="sc num">'+x.c.points+'</div><div class="meter"><i style="width:'+w+'%"></i></div></div>';
+  }).join(""):'<div class="empty">No active contestants.</div>';
+  prevRank=next;
+}
+function renderDanger(){
+  var n=active().filter(function(c){return c.nominated});
+  $("danger").innerHTML=n.length?n.map(function(c){
+    return '<div class="nominee">'+avatar(c)+'<div class="who"><b>'+esc(c.name)+'</b><small>'+esc(c.team)+' · '+c.points+' points</small></div><div class="acts"><button class="btn sm" data-act="nom" data-id="'+c.id+'" type="button">Save from danger</button><button class="btn sm solid-danger" data-act="evict" data-id="'+c.id+'" type="button">Evict</button></div></div>';
+  }).join(""):'<div class="empty">Nobody is nominated. Use Nominate in the contestant list.</div>';
+}
+function renderEvicted(){
+  var e=S.contestants.filter(function(c){return c.status==="evicted"});
+  $("evicted").innerHTML=e.length?e.map(function(c){
+    return '<li class="row">'+avatar(c)+'<div class="who"><b>'+esc(c.name)+'</b><small>'+esc(c.team)+' · finished on '+c.points+' points</small></div><div class="acts" style="grid-column:auto"><button class="btn sm" data-act="restore" data-id="'+c.id+'" type="button">Bring back</button></div></li>';
+  }).join(""):'<li class="empty">No evictions yet.</li>';
+}
+function renderTasks(){
+  var done=S.tasks.filter(function(t){return t.done}).length;
+  $("taskCount").textContent=S.tasks.length?done+" of "+S.tasks.length+" complete":"";
+  $("tasks").innerHTML=S.tasks.length?S.tasks.map(function(t){
+    var who=t.assigneeId==="all"?"Whole house":((byId(t.assigneeId)||{}).name||"Unknown");
+    var gone=t.assigneeId!=="all"&&byId(t.assigneeId)&&byId(t.assigneeId).status==="evicted";
+    return '<li class="task'+(t.done?" done":"")+'"><div><b>'+esc(t.title)+'</b><br><small>'+esc(who)+(gone?" (evicted)":"")+' · '+t.points+' points'+(S.timer.taskId===t.id?" · on the timer":"")+'</small></div>'+
+      (t.done?'<span class="tag">Done</span>':'<span></span>')+
+      '<div class="acts">'+(t.done?'<button class="btn sm" data-act="reopen" data-id="'+t.id+'" type="button">Reopen</button>':'<button class="btn sm primary" data-act="done" data-id="'+t.id+'" type="button">Mark complete</button><button class="btn sm" data-act="time" data-id="'+t.id+'" type="button">Put on timer</button>')+'<button class="btn sm danger" data-act="deltask" data-id="'+t.id+'" type="button">Delete</button></div></li>';
+  }).join(""):'<li class="empty">No tasks yet. Assign the first one above.</li>';
+}
+function renderAnn(){
+  var l=S.announcements[0];
+  $("strip").innerHTML=l?'<strong>Big Boss says</strong><span>'+esc(l.text)+'</span>':'<strong>Big Boss says</strong><span>No announcements yet.</span>';
+  $("annHist").innerHTML=S.announcements.slice(0,6).map(function(a){return '<li><time>'+hhmm(a.time)+'</time>'+esc(a.text)+'</li>'}).join("");
+}
+function renderLog(){
+  $("log").innerHTML=S.log.slice(0,40).map(function(l){return '<li><time class="num">'+hhmm(l.time)+'</time>'+esc(l.text)+'</li>'}).join("");
+}
+function syncSelects(){
+  var pv=$("taskWho").value||"all";
+  $("taskWho").innerHTML='<option value="all">Whole house</option>'+active().map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join("");
+  $("taskWho").value=pv;if($("taskWho").value!==pv)$("taskWho").value="all";
+  $("tTaskSel").innerHTML='<option value="">None</option>'+S.tasks.filter(function(t){return !t.done}).map(function(t){return '<option value="'+t.id+'">'+esc(t.title)+'</option>'}).join("");
+  var ok=S.tasks.some(function(t){return t.id===S.timer.taskId&&!t.done});
+  $("tTaskSel").value=ok?S.timer.taskId:"";
+}
+function render(){renderStats();renderContestants();renderBoard();renderDanger();renderEvicted();renderTasks();renderAnn();renderLog();syncSelects();drawTimer()}
+function commit(){save();render()}
+
+/* events */
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");if(!b)return;
+  var id=b.dataset.id,a=b.dataset.act;
+  if(a==="plus")adj(id,1);else if(a==="minus")adj(id,-1);
+  else if(a==="cap")setCaptain(id);else if(a==="imm")toggleImmune(id);
+  else if(a==="nom")toggleNominate(id);else if(a==="evict")askEvict(id);
+  else if(a==="restore")restore(id);else if(a==="done")completeTask(id);
+  else if(a==="reopen")reopenTask(id);else if(a==="deltask")deleteTask(id);
+  else if(a==="time"){S.timer.taskId=id;save();render();toast("Task linked to the timer.")}
+});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeModal();$("overlay").hidden=true}});
+$("resetBtn").onclick=function(){
+  confirmBox("Reset the house?","This restores the starting contestants, tasks, scores and timer.","Reset house",function(){S=seed();prevRank={};commit();toast("House reset.")});
+};
+$("themeBtn").onclick=function(){
+  var r=document.documentElement,cur=r.getAttribute("data-theme");
+  if(!cur)cur=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
+  r.setAttribute("data-theme",cur==="dark"?"light":"dark");
+};
+
+render();
+$("clock").textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+})();
+</script>
+</body>
+</html>
